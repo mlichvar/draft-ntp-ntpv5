@@ -310,6 +310,11 @@
                 In requests a value of 1 is a request for a response in the
                 interleaved mode. In responses a value of 1 indicates the
                 response is in the interleaved mode.</t>
+              <t hangText="0x4: Status message"><vspace/>
+                In requests it is 0. In responses a value of 1 indicates that
+                the response is not a normal time-providing response, and MUST
+                be interpreted according to the clauses in Section <xref
+                format="counter" target="status-message"/></t>
             </list>
           </t>
 
@@ -352,6 +357,35 @@
         message. A message can contain optional extension fields (zero or more).
         The maximum length is not specified, but the length MUST be divisible
         by 4.</t>
+    </section>
+
+    <section title="Status messages" anchor="status-message">
+      <t>Instead of a normal time response, a server may send a status message by
+        setting the 0x4 flag in the flag field. In such messages, the timestamps,
+        delay, dispersion, precision and leap indicator header fields SHOULD be
+        sent as 0 by the server, and the client MUST ignore these fields.</t>
+
+      <t>In a status message, the server should populate the first 4 bytes of the
+        Server Cookie header with an NTP kiss of death code. Specifications for
+        such codes MAY change the interpretation of the Era, Poll, and Timescale
+        header fields.</t>
+
+      <t>The RSTR and DENY kiss of death codes retain their meaning from NTPv4.
+        When received on an insecure connection, a client MAY interpret these as
+        hints that the server is no longer valid. For security however a client
+        on an insecure connection SHOULD wait to receive multiple RSTR or DENY
+        responses and should ensure it did not also receive any valid response
+        in the meantime. For RSTR and DENY codes received over secure connections
+        (e.g. signed by a MAC or an NTS field) the client SHOULD immediately stop
+        sending packets to the server.</t>
+
+      <t>The RATE kiss of death code also retains its meaning from NTPv4.
+        When received on an insecure connection, a client MAY interpret this
+        as a hint that the server wants it to back off its message rate. For
+        security, it SHOULD ignore such hints if it also receives a different
+        response to its request. When received on a secure connection, the
+        client MUST reduce its message rate so that it falls below one message
+        per period defined by the poll header field.</t>
     </section>
 
     <section title="Extension Fields">
